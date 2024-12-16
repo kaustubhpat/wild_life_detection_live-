@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Live Stream</title>
+</head>
+<body>
+    <h1>Live Stream from Mobile Camera</h1>
+    
+    <form method="POST" action="{% url 'index' %}">
+        {% csrf_token %}
+        <label for="camera_url">Enter Camera URL:</label>
+        <input type="text" id="camera_url" name="camera_url" 
+               placeholder="http://192.168.1.100:8080/video" required>
+        <button type="submit">Start Stream</button>
+    </form>
+    
+    {% if camera_url %}
+        <h2>Streaming from: {{ camera_url }}</h2>
+        <img src="{% url 'live_stream' %}?camera_url={{ camera_url }}" width="100%" alt="Live stream feed">
+    {% else %}
+        <p>No stream currently selected.</p>
+    {% endif %}
+</body>
+</html>

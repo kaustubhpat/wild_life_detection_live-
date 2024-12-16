@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Stream</title>
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light">
+ 
+<div class="container mt-5">
+<div class="row justify-content-center">
+<div class="col-lg-8 col-md-10">
+<h1 class="text-center mb-4">Live Stream</h1>
+ 
+            <div class="card">
+<div class="card-body">
+<video id="live-stream" class="w-100" controls autoplay>
+                        Your browser does not support the video tag.
+</video>
+</div>
+</div>
+ 
+            <div class="text-center mt-4">
+<button id="retry-btn" class="btn btn-primary" style="display:none;" onclick="retry()">Retry</button>
+<button id="refresh-btn" class="btn btn-secondary" onclick="hardRefresh()">Hard Refresh</button>
+</div>
+</div>
+</div>
+</div>
+ 
+<!-- Bootstrap JS, Popper.js, and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ 
+<script>
+    let totalClips = 10; // Total number of clips available
+    let playedClips = JSON.parse(localStorage.getItem('playedClips')) || [];
+    let notPlayedClips = JSON.parse(localStorage.getItem('notPlayedClips')) || [];
+ 
+    // Initialize notPlayedClips with all available clips if empty
+    if (notPlayedClips.length === 0) {
+        for (let i = 1; i <= totalClips; i++) {
+            if (!playedClips.includes(i)) {
+                notPlayedClips.push(i);
+            }
+        }
+        localStorage.setItem('notPlayedClips', JSON.stringify(notPlayedClips));
+    }
+ 
+    let currentClipIndex = notPlayedClips.length > 0 ? notPlayedClips[0] : 1;
+    const videoElement = document.getElementById('live-stream');
+    const retryBtn = document.getElementById('retry-btn');
+ 
+    // Function to update played and notPlayed lists
+    function updateClipLists(clipIndex) {
+        if (!playedClips.includes(clipIndex)) {
+            playedClips.push(clipIndex);
+        }
+        const notPlayedIndex = notPlayedClips.indexOf(clipIndex);
+        if (notPlayedIndex !== -1) {
+            notPlayedClips.splice(notPlayedIndex, 1);
+        }
+        localStorage.setItem('playedClips', JSON.stringify(playedClips));
+        localStorage.setItem('notPlayedClips', JSON.stringify(notPlayedClips));
+    }
+ 
+    async function checkAndPlayNextClip() {
+        if (notPlayedClips.length === 0) {
+            console.log("All clips have been played.");
+            return;
+        }
+ 
+        currentClipIndex = notPlayedClips[0]; // Get the first not played clip
+        const nextSourceUrl = `https://livestream.arthink.ai/videos/feed_clip_${currentClipIndex}detected.mp4`;
+        const savedTime = JSON.parse(localStorage.getItem('savedTime')) || 0;
+ 
+        try {
+            const response = await fetch(nextSourceUrl, { method: 'HEAD' });
+ 
+            if (response.ok) {
+                videoElement.src = nextSourceUrl;
+                videoElement.currentTime = savedTime; // Set video to saved time
+                videoElement.play();
+ 
+                // Update lists after successfully playing the clip
+                updateClipLists(currentClipIndex);
+                localStorage.removeItem('savedTime'); // Clear saved time once video starts
+            } else {
+                retryBtn.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error fetching the video:', error);
+            retryBtn.style.display = 'block';
+        }
+    }
+ 
+    function retry() {
+        retryBtn.style.display = 'none';
+        checkAndPlayNextClip();
+    }
+ 
+    function hardRefresh() {
+        localStorage.removeItem('playedClips');
+        localStorage.removeItem('notPlayedClips');
+        localStorage.removeItem('savedTime');
+        playedClips = [];
+        notPlayedClips = [];
+        // Re-initialize notPlayedClips with all available clips
+        for (let i = 1; i <= totalClips; i++) {
+            notPlayedClips.push(i);
+        }
+        currentClipIndex = notPlayedClips[0];
+        checkAndPlayNextClip();
+    }
+ 
+    function refreshPage() {
+        window.location.reload();
+    }
+ 
+    videoElement.addEventListener('ended', function() {
+        // Save current time and check the next clip
+        localStorage.setItem('savedTime', videoElement.currentTime);
+        checkAndPlayNextClip();
+    });
+ 
+    videoElement.addEventListener('timeupdate', function() {
+        // Continuously save the current playback time
+        localStorage.setItem('savedTime', videoElement.currentTime);
+    });
+ 
+    checkAndPlayNextClip();
+</script>
+ 
+</body>
+</html>

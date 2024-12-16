@@ -1,0 +1,9 @@
+opencv-python
+django
+torch
+numpy
+matplotlib
+pyyaml
+ultralytics
+requests
+pyrtmp

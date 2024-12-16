@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Video</title>
+</head>
+<body>
+    <h1>Select a Video to Display</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="video_file">Choose Video:</label>
+        <input type="file" id="video_file" name="video_file" accept="video/*">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

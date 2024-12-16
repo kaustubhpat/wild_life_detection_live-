@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Live Stream</title>
+</head>
+<body>
+<h1>Live Object Detection Stream</h1>
+<form method="post">
+        {% csrf_token %}
+<label for="camera_url">Camera URL:</label>
+<input type="text" id="camera_url" name="camera_url" value="{{ camera_url }}">
+<button type="submit">Submit</button>
+</form>
+ 
+    {% if camera_url %}
+<h2>Streaming...</h2>
+<img src="{% url 'live_stream' %}?camera_url={{ camera_url }}" width="640" height="480">
+    {% endif %}
+</body>
+</html>
